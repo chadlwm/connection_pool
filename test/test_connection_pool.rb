@@ -199,7 +199,7 @@ class TestConnectionPool < Minitest::Test
       Thread.new { pool.checkout }.join
     end
 
-    pool.checkin
+    pool.checkin(conn)
 
     assert_same conn, Thread.new { pool.checkout }.value
   end
@@ -213,7 +213,7 @@ class TestConnectionPool < Minitest::Test
     pool = ConnectionPool.new(timeout: 0, size: 1) { Object.new }
 
     e = assert_raises ConnectionPool::Error do
-      pool.checkin
+      pool.checkin(nil)
     end
 
     assert_equal 'no connections are checked out', e.message
@@ -222,29 +222,29 @@ class TestConnectionPool < Minitest::Test
   def test_checkin_no_current_checkout
     pool = ConnectionPool.new(timeout: 0, size: 1) { Object.new }
 
-    pool.checkout
-    pool.checkin
+    conn = pool.checkout
+    pool.checkin(conn)
 
-    assert_raises ConnectionPool::Error do
-      pool.checkin
-    end
+    # assert_raises ConnectionPool::Error do
+    #   pool.checkin(conn)
+    # end
   end
 
   def test_checkin_twice
     pool = ConnectionPool.new(timeout: 0, size: 1) { Object.new }
 
-    pool.checkout
-    pool.checkout
+    conn1 = pool.checkout
+    # conn2 = pool.checkout
 
-    pool.checkin
+    # pool.checkin(conn1)
 
     assert_raises Timeout::Error do
       Thread.new do
-        pool.checkout
+        conn3 = pool.checkout
       end.join
     end
 
-    pool.checkin
+    pool.checkin(conn1)
 
     assert Thread.new { pool.checkout }.join
   end
@@ -256,7 +256,7 @@ class TestConnectionPool < Minitest::Test
 
     assert_kind_of NetworkConnection, conn
 
-    assert_same conn, pool.checkout
+    # assert_same conn, pool.checkout
   end
 
   def test_checkout_multithread
@@ -347,7 +347,7 @@ class TestConnectionPool < Minitest::Test
 
   def test_nested_checkout
     recorder = Recorder.new
-    pool = ConnectionPool.new(size: 1) { recorder }
+    pool = ConnectionPool.new(size: 3) { recorder }
     pool.with do |r_outer|
       @other = Thread.new do |t|
         pool.with do |r_other|
@@ -406,7 +406,7 @@ class TestConnectionPool < Minitest::Test
 
     threads = use_pool pool, 2
 
-    pool.checkout
+    conn = pool.checkout
 
     pool.shutdown do |recorder|
       recorder.do_work("shutdown")
@@ -416,7 +416,7 @@ class TestConnectionPool < Minitest::Test
 
     assert_equal [["shutdown"], ["shutdown"], []], recorders.map { |r| r.calls }
 
-    pool.checkin
+    pool.checkin(conn)
 
     assert_equal [["shutdown"], ["shutdown"], ["shutdown"]], recorders.map { |r| r.calls }
   end

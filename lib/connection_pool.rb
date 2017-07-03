@@ -64,7 +64,7 @@ if Thread.respond_to?(:handle_interrupt)
           yield conn
         end
       ensure
-        checkin
+        checkin(conn)
       end
     end
   end
@@ -84,20 +84,24 @@ else
 end
 
   def checkout(options = {})
-    conn = if stack.empty?
-      timeout = options[:timeout] || @timeout
-      @available.pop(timeout: timeout)
-    else
-      stack.last
-    end
+    # conn = if stack.empty?
+    #   timeout = options[:timeout] || @timeout
+    #   @available.pop(timeout: timeout)
+    # else
+    #   stack.last
+    # end
 
-    stack.push conn
+    # stack.push conn
+    timeout = options[:timeout] || @timeout
+    conn = @available.pop(timeout: timeout)
     conn
   end
 
-  def checkin
-    conn = pop_connection # mutates stack, must be on its own line
-    @available.push(conn) if stack.empty?
+  def checkin(conn)
+    # conn = pop_connection # mutates stack, must be on its own line
+    # @available.push(conn) if stack.empty?
+    raise ConnectionPool::Error, 'no connections are checked out' unless conn
+    @available.push(conn)
 
     nil
   end

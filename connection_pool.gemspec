@@ -2,12 +2,12 @@
 require "./lib/connection_pool/version"
 
 Gem::Specification.new do |s|
-  s.name        = "connection_pool"
+  s.name        = "connection_pool_single"
   s.version     = ConnectionPool::VERSION
   s.platform    = Gem::Platform::RUBY
-  s.authors     = ["Mike Perham", "Damian Janowski"]
-  s.email       = ["mperham@gmail.com", "damian@educabilia.com"]
-  s.homepage    = "https://github.com/mperham/connection_pool"
+  s.authors     = ["Mike Perham", "Damian Janowski", "Chad Liu"]
+  s.email       = ["mperham@gmail.com", "damian@educabilia.com", "chad_lwm@hotmail.com"]
+  s.homepage    = "https://github.com/chadlwm/connection_pool"
   s.description = s.summary = %q{Generic connection pool for Ruby}
 
   s.files         = `git ls-files`.split("\n")
